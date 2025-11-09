@@ -461,13 +461,22 @@ class Router {
   static exportToExcel() {
     const clients = DB.getClients();
     const results = DB.getResults();
+    const analyses = Storage.get('ai-analyses', []);
+    
     let csv = '\uFEFF';
-    csv += 'ФИО;Дата рождения;Возраст;Название теста;Дата проведения;Балл;Результат;Рекомендации\n';
+    csv += 'ФИО;Дата рождения;Возраст;Название теста;Дата проведения;Балл;Результат;Рекомендации;AI-анализ\n';
+    
     clients.forEach(client => {
       const clientResults = results.filter(r => r.clientId === client.id);
+      const clientAnalyses = analyses.filter(a => a.clientId === client.id);
       const age = Math.floor((new Date() - new Date(client.birthDate)) / (365.25 * 24 * 60 * 60 * 1000));
+      
+      const aiInfo = clientAnalyses.length > 0 
+        ? 'Есть (' + clientAnalyses.length + ' шт, последний: ' + new Date(clientAnalyses[clientAnalyses.length - 1].date).toLocaleDateString('ru-RU') + ')'
+        : 'Нет';
+      
       if (clientResults.length === 0) {
-        csv += '"' + client.name + '";"' + new Date(client.birthDate).toLocaleDateString('ru-RU') + '";"' + age + '";"Нет тестов";"";"";"";""\n';
+        csv += '"' + client.name + '";"' + new Date(client.birthDate).toLocaleDateString('ru-RU') + '";"' + age + '";"Нет тестов";"";"";"";"";' + '"' + aiInfo + '"\n';
       } else {
         clientResults.forEach(result => {
           const test = TESTS[result.testId];
@@ -479,17 +488,70 @@ class Router {
           csv += '"' + new Date(result.date).toLocaleDateString('ru-RU') + ' ' + new Date(result.date).toLocaleTimeString('ru-RU') + '";';
           csv += '"' + result.score + '";';
           csv += '"' + result.interpretation.replace(/"/g, '""') + '";';
-          csv += '"' + rec.replace(/"/g, '""') + '"\n';
+          csv += '"' + rec.replace(/"/g, '""') + '";';
+          csv += '"' + aiInfo + '"\n';
         });
       }
     });
+    
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'psychosuite_database_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.download = 'psychosuite_tests_' + new Date().toISOString().slice(0,10) + '.csv';
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  static async exportAIAnalyses() {
+    const JSZip = await this.loadJSZip();
+    const zip = new JSZip();
+    const analyses = Storage.get('ai-analyses', []);
+    const clients = DB.getClients();
+    
+    if (analyses.length === 0) {
+      alert('Нет AI-заключений для экспорта');
+      return;
+    }
+    
+    analyses.forEach(analysis => {
+      const client = clients.find(c => c.id === analysis.clientId);
+      if (client) {
+        const fileName = this.sanitizeFileName(client.name) + '_' + new Date(analysis.date).toISOString().slice(0,10).replace(/-/g, '') + '.txt';
+        let content = 'AI-ЗАКЛЮЧЕНИЕ ПСИХОЛОГА\n';
+        content += '============================================================\n\n';
+        content += 'Клиент: ' + client.name + '\n';
+        content += 'Дата анализа: ' + new Date(analysis.date).toLocaleString('ru-RU') + '\n\n';
+        content += '============================================================\n\n';
+        content += analysis.text;
+        content += '\n\n============================================================\n';
+        content += 'Сгенерировано AI-ассистентом PsychoSuite\n';
+        zip.file(fileName, content);
+      }
+    });
+    
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'psychosuite_ai_' + new Date().toISOString().slice(0,10) + '.zip';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  static sanitizeFileName(name) {
+    return name.replace(/[^a-zA-Zа-яА-ЯёЁ0-9_-]/g, '_');
+  }
+
+  static async loadJSZip() {
+    if (window.JSZip) return window.JSZip;
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      script.onload = () => resolve(window.JSZip);
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
   }
 
   static getRecommendations(testId, score) {
@@ -551,11 +613,15 @@ class Router {
 
   static HomeScreen() {
     const hasData = DB.getClients().length > 0;
+    const hasAI = Storage.get('ai-analyses', []).length > 0;
+    
     return '<div class="card"><h2>Главное меню</h2>' +
       '<button class="btn-primary" onclick="Router.navigate(\'selectClient\', {action:\'test\'})">Провести тестирование</button>' +
       '<button class="btn-success" onclick="Router.navigate(\'clients\')">Управление клиентами</button>' +
       '<button class="btn-outline" onclick="Router.navigate(\'selectClient\', {action:\'results\'})">Просмотр результатов</button>' +
-      (hasData ? '<button class="btn-success" onclick="Router.exportToExcel()" style="margin-top: 2rem; background: #2ECC71;">📊 Экспорт всей базы в Excel</button>' : '') +
+      (hasData ? '<div style="margin-top: 2rem;"><h3 style="font-size: var(--fs-lg); margin-bottom: 1rem;">📊 Экспорт данных</h3>' +
+        '<button class="btn-success" onclick="Router.exportToExcel()" style="background: #2ECC71;">📊 Экспорт тестов (CSV)</button>' : '') +
+      (hasAI ? '<button class="btn-success" onclick="Router.exportAIAnalyses()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🤖 Экспорт AI-заключений (ZIP)</button></div>' : '') +
       '</div>';
   }
 
@@ -669,15 +735,21 @@ class Router {
   static ResultsScreen() {
     const client = DB.getClient(this.params.clientId);
     const results = DB.getClientResults(this.params.clientId);
+    const aiAnalyses = AI.getAnalyses(this.params.clientId);
     const hasKey = Settings.getAIKey() !== '';
+    
     let html = '<div class="card"><h2>Результаты: ' + client.name + '</h2>';
+    
     if (results.length > 0) {
       html += '<button class="btn-success" onclick="Router.navigate(\'createReport\', {clientId:\'' + client.id + '\'})">📄 Создать сводный протокол</button>';
       html += '<button class="btn-primary" onclick="Router.navigate(\'aiAnalysis\', {clientId:\'' + client.id + '\'})" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🤖 Получить AI-заключение' + (hasKey ? '' : ' (требуется настройка)') + '</button>';
     }
+    
+    // Результаты тестов
     if (results.length === 0) {
       html += '<div class="empty-state">Нет результатов тестирования</div>';
     } else {
+      html += '<h3 style="font-size: var(--fs-xl); margin: 2rem 0 1rem 0; color: var(--text-primary);">📊 Результаты тестов</h3>';
       results.forEach(result => {
         const test = TESTS[result.testId];
         html += '<div class="result-card" onclick="Router.navigate(\'viewResult\', {resultId:\'' + result.id + '\'})">' +
@@ -687,6 +759,18 @@ class Router {
           '<div class="result-interpretation">' + result.interpretation + '</div></div>';
       });
     }
+    
+    // AI-заключения
+    if (aiAnalyses.length > 0) {
+      html += '<h3 style="font-size: var(--fs-xl); margin: 2rem 0 1rem 0; color: var(--text-primary);">🤖 AI-заключения</h3>';
+      aiAnalyses.forEach(analysis => {
+        html += '<div class="result-card" onclick="Router.navigate(\'aiResult\', {analysisId:\'' + analysis.id + '\'})" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">' +
+          '<h3 style="font-size: var(--fs-xl); margin-bottom: 0.5rem">AI-анализ от ' + new Date(analysis.date).toLocaleDateString('ru-RU') + '</h3>' +
+          '<p style="opacity: 0.9">' + new Date(analysis.date).toLocaleTimeString('ru-RU') + '</p>' +
+          '<div style="margin-top: 1rem; opacity: 0.9; font-size: var(--fs-base);">Нажмите для просмотра полного заключения</div></div>';
+      });
+    }
+    
     html += '<button class="btn-outline" onclick="Router.navigate(\'selectClient\', {action:\'results\'})">← Назад</button></div>';
     return html;
   }
@@ -749,7 +833,7 @@ class Router {
     return '<div class="card"><h2>🤖 AI-заключение</h2>' +
       '<p style="margin-bottom: 1rem;"><strong>Клиент:</strong> ' + client.name + '</p>' +
       '<p style="margin-bottom: 2rem;"><strong>Дата:</strong> ' + new Date(analysis.date).toLocaleString('ru-RU') + '</p>' +
-      '<div style="background: var(--bg); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; white-space: pre-wrap; line-height: 1.8;">' +
+      '<div style="background: var(--bg); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; line-height: 1.8;">' +
       this.formatMarkdown(analysis.text) + '</div>' +
       '<button class="btn-success" onclick="Router.downloadAIReport(\'' + analysis.id + '\')">📥 Скачать заключение (TXT)</button>' +
       '<button class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + client.id + '\'})">← Назад к результатам</button></div>';
