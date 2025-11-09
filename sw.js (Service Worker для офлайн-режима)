@@ -54,3 +54,9 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+// Принудительная активация при получении сообщения
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
