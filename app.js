@@ -24,7 +24,6 @@ class Settings {
     this.setFontSize(this.getFontSize());
   }
 
-  // ← ВОТ ЭТО НОВОЕ ↓
   static getAIKey() {
     return localStorage.getItem('ai-api-key') || '';
   }
@@ -277,6 +276,13 @@ class Router {
         app.innerHTML = this.CreateReportScreen();
         setTimeout(() => this.attachReportListeners(), 0);
         break;
+      case 'aiAnalysis':
+        app.innerHTML = this.AIAnalysisScreen();
+        setTimeout(() => this.attachAIListeners(), 0);
+        break;
+      case 'aiResult':
+        app.innerHTML = this.AIResultScreen();
+        break;
       default:
         app.innerHTML = this.HomeScreen();
     }
@@ -401,6 +407,29 @@ class Router {
     }
   }
 
+  static attachAIListeners() {
+    const generateBtn = document.getElementById('generateAIBtn');
+    if (generateBtn) {
+      generateBtn.addEventListener('click', async () => {
+        const statusEl = document.getElementById('aiStatus');
+        const btnEl = document.getElementById('generateAIBtn');
+        
+        statusEl.innerHTML = '<div style="text-align:center; padding: 2rem; font-size: var(--fs-lg);">🤖 AI анализирует результаты...<br><br>⏳ Это займёт 5-10 секунд</div>';
+        btnEl.disabled = true;
+        btnEl.style.opacity = '0.5';
+        
+        try {
+          const analysis = await AI.generateAnalysis(Router.params.clientId);
+          Router.navigate('aiResult', { analysisId: analysis.id });
+        } catch (err) {
+          statusEl.innerHTML = '<div style="color: var(--danger); padding: 2rem; text-align: center; font-size: var(--fs-lg);">❌ Ошибка: ' + err.message + '</div>';
+          btnEl.disabled = false;
+          btnEl.style.opacity = '1';
+        }
+      });
+    }
+  }
+
   static downloadReport(resultIds) {
     const client = DB.getClient(this.params.clientId);
     const results = resultIds.map(id => DB.getResult(id)).filter(Boolean);
@@ -486,6 +515,40 @@ class Router {
     return 'Требуется индивидуальная консультация специалиста.';
   }
 
+  static saveAIKey() {
+    const key = document.getElementById('aiKeyInput').value.trim();
+    Settings.setAIKey(key);
+    alert(key ? '✅ API ключ сохранён!' : '⚠️ API ключ удалён');
+  }
+
+  static downloadAIReport(analysisId) {
+    const analysis = AI.getAnalysis(analysisId);
+    const client = DB.getClient(analysis.clientId);
+    let report = 'AI-ЗАКЛЮЧЕНИЕ ПСИХОЛОГА\n';
+    report += '============================================================\n\n';
+    report += 'Клиент: ' + client.name + '\n';
+    report += 'Дата анализа: ' + new Date(analysis.date).toLocaleString('ru-RU') + '\n\n';
+    report += '============================================================\n\n';
+    report += analysis.text;
+    report += '\n\n============================================================\n';
+    report += 'Сгенерировано AI-ассистентом PsychoSuite\n';
+    const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ai_analysis_' + client.name + '_' + Date.now() + '.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  static formatMarkdown(text) {
+    return text
+      .replace(/## (.+)/g, '<h3 style="color: var(--primary); margin-top: 1.5rem; margin-bottom: 1rem; font-size: var(--fs-xl);">$1</h3>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/- (.+)/g, '<div style="margin-left: 1rem; margin-bottom: 0.5rem;">• $1</div>')
+      .replace(/\n\n/g, '<br><br>');
+  }
+
   static HomeScreen() {
     const hasData = DB.getClients().length > 0;
     return '<div class="card"><h2>Главное меню</h2>' +
@@ -499,7 +562,14 @@ class Router {
   static SettingsScreen() {
     const theme = Settings.getTheme();
     const size = Settings.getFontSize();
+    const aiKey = Settings.getAIKey();
     return '<div class="card"><h2>Настройки</h2>' +
+      '<div class="settings-group"><h3>🤖 AI-ассистент</h3>' +
+      '<label>API ключ Google Gemini:</label>' +
+      '<input type="text" id="aiKeyInput" value="' + aiKey + '" placeholder="AIzaSy..." style="margin-bottom: 0.5rem;">' +
+      '<button class="btn-primary btn-small" onclick="Router.saveAIKey()">💾 Сохранить ключ</button>' +
+      '<p style="font-size: var(--fs-base); color: var(--text-light); margin-top: 0.5rem;">' +
+      '📌 <a href="https://aistudio.google.com/apikey" target="_blank" style="color: var(--primary);">Получить бесплатный ключ</a> (2 минуты)</p></div>' +
       '<div class="settings-group"><h3>Тема оформления</h3>' +
       '<div class="setting-option ' + (theme === 'light' ? 'active' : '') + '" data-theme-option="light">☀️ Светлая тема</div>' +
       '<div class="setting-option ' + (theme === 'dark' ? 'active' : '') + '" data-theme-option="dark">🌙 Темная тема</div>' +
@@ -599,9 +669,11 @@ class Router {
   static ResultsScreen() {
     const client = DB.getClient(this.params.clientId);
     const results = DB.getClientResults(this.params.clientId);
+    const hasKey = Settings.getAIKey() !== '';
     let html = '<div class="card"><h2>Результаты: ' + client.name + '</h2>';
     if (results.length > 0) {
       html += '<button class="btn-success" onclick="Router.navigate(\'createReport\', {clientId:\'' + client.id + '\'})">📄 Создать сводный протокол</button>';
+      html += '<button class="btn-primary" onclick="Router.navigate(\'aiAnalysis\', {clientId:\'' + client.id + '\'})" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🤖 Получить AI-заключение' + (hasKey ? '' : ' (требуется настройка)') + '</button>';
     }
     if (results.length === 0) {
       html += '<div class="empty-state">Нет результатов тестирования</div>';
@@ -649,6 +721,38 @@ class Router {
     html += '<button type="submit" class="btn-success" style="margin-top: 1rem">📥 Скачать протокол (TXT)</button>' +
       '<button type="button" class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + client.id + '\'})">Отмена</button></form></div>';
     return html;
+  }
+
+  static AIAnalysisScreen() {
+    const client = DB.getClient(this.params.clientId);
+    const results = DB.getClientResults(this.params.clientId);
+    const hasKey = Settings.getAIKey() !== '';
+    if (!hasKey) {
+      return '<div class="card"><h2>🤖 AI-ассистент</h2>' +
+        '<p style="color: var(--danger); margin-bottom: 2rem;">⚠️ API ключ не настроен!</p>' +
+        '<p style="margin-bottom: 2rem;">Для использования AI-ассистента нужен бесплатный API ключ от Google Gemini.</p>' +
+        '<button class="btn-primary" onclick="Router.navigate(\'settings\')">⚙️ Перейти в настройки</button>' +
+        '<button class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + this.params.clientId + '\'})">← Назад</button></div>';
+    }
+    return '<div class="card"><h2>🤖 AI-анализ результатов</h2>' +
+      '<p style="margin-bottom: 1rem;"><strong>Клиент:</strong> ' + client.name + '</p>' +
+      '<p style="margin-bottom: 2rem;"><strong>Тестов:</strong> ' + results.length + '</p>' +
+      '<p style="margin-bottom: 2rem; color: var(--text-light);">AI-психолог проанализирует все результаты и составит детальное заключение с рекомендациями, прогнозом и планом наблюдения.</p>' +
+      '<div id="aiStatus"></div>' +
+      '<button id="generateAIBtn" class="btn-primary">🚀 Сгенерировать заключение</button>' +
+      '<button class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + this.params.clientId + '\'})">← Назад</button></div>';
+  }
+
+  static AIResultScreen() {
+    const analysis = AI.getAnalysis(this.params.analysisId);
+    const client = DB.getClient(analysis.clientId);
+    return '<div class="card"><h2>🤖 AI-заключение</h2>' +
+      '<p style="margin-bottom: 1rem;"><strong>Клиент:</strong> ' + client.name + '</p>' +
+      '<p style="margin-bottom: 2rem;"><strong>Дата:</strong> ' + new Date(analysis.date).toLocaleString('ru-RU') + '</p>' +
+      '<div style="background: var(--bg); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; white-space: pre-wrap; line-height: 1.8;">' +
+      this.formatMarkdown(analysis.text) + '</div>' +
+      '<button class="btn-success" onclick="Router.downloadAIReport(\'' + analysis.id + '\')">📥 Скачать заключение (TXT)</button>' +
+      '<button class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + client.id + '\'})">← Назад к результатам</button></div>';
   }
 }
 
