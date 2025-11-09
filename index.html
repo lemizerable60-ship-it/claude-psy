@@ -26,11 +26,63 @@
       --text-light: #7F8C8D;
       --border: #E0E6ED;
       --shadow: 0 2px 8px rgba(0,0,0,0.1);
-      
-      --fs-base: clamp(18px, 5vw, 22px);
-      --fs-lg: clamp(22px, 6vw, 28px);
-      --fs-xl: clamp(26px, 7vw, 34px);
-      --fs-xxl: clamp(32px, 8vw, 42px);
+    }
+
+    /* Dark Theme */
+    [data-theme="dark"] {
+      --primary: #5BA3F5;
+      --primary-dark: #4A90E2;
+      --success: #60D888;
+      --danger: #F75C4C;
+      --bg: #1a1a1a;
+      --card-bg: #2d2d2d;
+      --text: #E0E0E0;
+      --text-light: #A0A0A0;
+      --border: #404040;
+      --shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    /* High Contrast Theme */
+    [data-theme="contrast"] {
+      --primary: #FFD700;
+      --primary-dark: #FFC700;
+      --success: #00FF00;
+      --danger: #FF0000;
+      --bg: #000000;
+      --card-bg: #1a1a1a;
+      --text: #FFFFFF;
+      --text-light: #CCCCCC;
+      --border: #FFFFFF;
+      --shadow: 0 2px 8px rgba(255,255,255,0.2);
+    }
+
+    /* Font Sizes */
+    [data-font-size="small"] {
+      --fs-base: 16px;
+      --fs-lg: 20px;
+      --fs-xl: 24px;
+      --fs-xxl: 28px;
+    }
+
+    [data-font-size="medium"] {
+      --fs-base: 20px;
+      --fs-lg: 24px;
+      --fs-xl: 30px;
+      --fs-xxl: 36px;
+    }
+
+    [data-font-size="large"] {
+      --fs-base: 24px;
+      --fs-lg: 30px;
+      --fs-xl: 36px;
+      --fs-xxl: 44px;
+    }
+
+    [data-font-size="xlarge"] {
+      --fs-base: 28px;
+      --fs-lg: 36px;
+      --fs-xl: 44px;
+      --fs-xxl: 52px;
     }
 
     body {
@@ -41,6 +93,7 @@
       font-size: var(--fs-base);
       min-height: 100vh;
       overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
     }
 
     /* Header */
@@ -52,6 +105,9 @@
       position: sticky;
       top: 0;
       z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     header h1 {
@@ -63,6 +119,17 @@
     header p {
       font-size: var(--fs-base);
       opacity: 0.9;
+    }
+
+    .header-settings {
+      cursor: pointer;
+      font-size: var(--fs-xl);
+      padding: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 50px;
+      min-height: 50px;
     }
 
     /* Main */
@@ -79,6 +146,7 @@
       padding: 2rem 1.5rem;
       margin-bottom: 1.5rem;
       box-shadow: var(--shadow);
+      transition: background 0.3s;
     }
 
     .card h2 {
@@ -126,7 +194,7 @@
     }
 
     .btn-outline {
-      background: white;
+      background: var(--card-bg);
       border: 3px solid var(--primary);
       color: var(--primary);
     }
@@ -181,7 +249,7 @@
     }
 
     .answer-option {
-      background: white;
+      background: var(--card-bg);
       border: 3px solid var(--border);
       padding: 1.5rem;
       margin-bottom: 1rem;
@@ -214,6 +282,8 @@
       border-radius: 12px;
       margin-bottom: 1rem;
       font-family: inherit;
+      background: var(--card-bg);
+      color: var(--text);
     }
 
     input:focus, select:focus {
@@ -230,7 +300,7 @@
 
     /* Lists */
     .list-item {
-      background: white;
+      background: var(--card-bg);
       padding: 1.5rem;
       margin-bottom: 1rem;
       border-radius: 12px;
@@ -245,8 +315,13 @@
     }
 
     .list-item:active {
-      background: #F0F7FF;
+      background: var(--primary);
+      color: white;
       border-color: var(--primary);
+    }
+
+    .list-item:active .list-item-info {
+      color: rgba(255,255,255,0.8);
     }
 
     .list-item-info {
@@ -257,7 +332,7 @@
 
     /* Result Card */
     .result-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
       padding: 2rem;
       border-radius: 16px;
@@ -300,6 +375,7 @@
       align-items: center;
       gap: 1rem;
       cursor: pointer;
+      background: var(--card-bg);
     }
 
     .checkbox-item input[type="checkbox"] {
@@ -315,14 +391,55 @@
     }
 
     .checkbox-item:active {
-      background: #F0F7FF;
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Settings */
+    .settings-group {
+      margin-bottom: 2rem;
+    }
+
+    .settings-group h3 {
+      font-size: var(--fs-lg);
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    .setting-option {
+      background: var(--card-bg);
+      border: 3px solid var(--border);
+      padding: 1.2rem;
+      margin-bottom: 0.8rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: var(--fs-lg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .setting-option.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .setting-option:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>PsychoSuite</h1>
-    <p>Психологическая диагностика</p>
+    <div>
+      <h1>PsychoSuite</h1>
+      <p>Психологическая диагностика</p>
+    </div>
+    <div class="header-settings" onclick="Router.navigate('settings')" title="Настройки">
+      ⚙️
+    </div>
   </header>
 
   <main id="app">
