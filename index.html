@@ -493,14 +493,12 @@
     </div>
   </main>
 
-  <script type="module" src="app.js"></script>
+  <script src="app.js"></script>
   <script>
-    // Register Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
-          .then(() => console.log('SW registered'))
-          .catch(() => console.log('SW registration failed'));
+          .catch(() => console.log('SW failed'));
       });
     }
   </script>
