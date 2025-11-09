@@ -23,6 +23,15 @@ class Settings {
     this.setTheme(this.getTheme());
     this.setFontSize(this.getFontSize());
   }
+
+  // ← ВОТ ЭТО НОВОЕ ↓
+  static getAIKey() {
+    return localStorage.getItem('ai-api-key') || '';
+  }
+
+  static setAIKey(key) {
+    localStorage.setItem('ai-api-key', key);
+  }
 }
 
 // ============ DATA LAYER ============
