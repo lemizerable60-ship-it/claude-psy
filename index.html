@@ -96,11 +96,11 @@
       transition: background 0.3s, color 0.3s;
     }
 
-    /* Header */
+    /* Header - КОМПАКТНАЯ */
     header {
       background: var(--primary);
       color: white;
-      padding: 1.5rem;
+      padding: 0.5rem 1rem;
       box-shadow: var(--shadow);
       position: sticky;
       top: 0;
@@ -108,28 +108,24 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      min-height: 50px;
     }
 
     header h1 {
-      font-size: var(--fs-xxl);
+      font-size: 1.25rem;
       font-weight: 600;
-      margin-bottom: 0.3rem;
-    }
-
-    header p {
-      font-size: var(--fs-base);
-      opacity: 0.9;
+      margin: 0;
     }
 
     .header-settings {
       cursor: pointer;
-      font-size: var(--fs-xl);
-      padding: 0.5rem;
+      font-size: 1.5rem;
+      padding: 0.25rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 50px;
-      min-height: 50px;
+      min-width: 40px;
+      min-height: 40px;
     }
 
     /* Main */
@@ -207,6 +203,13 @@
     .btn-danger {
       background: var(--danger);
       color: white;
+    }
+
+    /* Small buttons for actions */
+    .btn-small {
+      min-height: 45px;
+      padding: 0.75rem 1rem;
+      font-size: var(--fs-base);
     }
 
     /* Question Screen */
@@ -324,10 +327,45 @@
       color: rgba(255,255,255,0.8);
     }
 
+    .list-item:active .list-item-actions {
+      opacity: 0.9;
+    }
+
+    .list-item-content {
+      flex: 1;
+    }
+
     .list-item-info {
       font-size: var(--fs-base);
       color: var(--text-light);
       margin-top: 0.3rem;
+    }
+
+    .list-item-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: 1rem;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      min-height: auto;
+      width: auto;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.7;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:active {
+      opacity: 1;
+      transform: scale(1.1);
     }
 
     /* Result Card */
@@ -429,14 +467,21 @@
     .setting-option:active {
       transform: scale(0.98);
     }
+
+    /* Button Groups */
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-group button {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
   <header>
-    <div>
-      <h1>PsychoSuite</h1>
-      <p>Психологическая диагностика</p>
-    </div>
+    <h1>PsychoSuite</h1>
     <div class="header-settings" onclick="Router.navigate('settings')" title="Настройки">
       ⚙️
     </div>
