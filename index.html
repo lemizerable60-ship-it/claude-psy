@@ -488,10 +488,12 @@
   </header>
 
   <main id="app">
-    <!-- Screens will be rendered here -->
+    <div class="card">
+      <h2 style="text-align: center; color: var(--text-light);">Загрузка...</h2>
+    </div>
   </main>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
   <script>
     // Register Service Worker
     if ('serviceWorker' in navigator) {
