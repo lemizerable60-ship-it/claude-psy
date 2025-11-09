@@ -1,0 +1,11 @@
+{
+  "name": "PsychoSuite",
+  "short_name": "PsychoSuite",
+  "description": "Психологическая диагностика",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F5F7FA",
+  "theme_color": "#4A90E2",
+  "orientation": "portrait",
+  "icons": []
+}
