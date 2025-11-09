@@ -1,14 +1,56 @@
-const CACHE_NAME = 'psychosuite-v1';
-const urlsToCache = ['./', './index.html', './app.js'];
+const CACHE_NAME = 'psychosuite-v2';
+const urlsToCache = [
+  './',
+  './index.html',
+  './app.js',
+  './ai.js'
+];
 
+// Install - кешируем файлы
 self.addEventListener('install', event => {
+  console.log('[SW] Installing version', CACHE_NAME);
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('[SW] Caching files');
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => self.skipWaiting()) // Активируем новый SW сразу
   );
 });
 
+// Activate - удаляем старые кеши
+self.addEventListener('activate', event => {
+  console.log('[SW] Activating version', CACHE_NAME);
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim()) // Берем контроль над страницами
+  );
+});
+
+// Fetch - стратегия Network First (сначала сеть, потом кеш)
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
+    fetch(event.request)
+      .then(response => {
+        // Если получили ответ из сети - обновляем кеш
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, responseClone);
+        });
+        return response;
+      })
+      .catch(() => {
+        // Если сети нет - берем из кеша
+        return caches.match(event.request);
+      })
   );
 });
