@@ -61,6 +61,23 @@ class DB {
     this.saveClients(clients);
   }
 
+  static updateClient(id, updatedData) {
+    const clients = this.getClients();
+    const index = clients.findIndex(c => c.id === id);
+    if (index !== -1) {
+      clients[index] = { ...clients[index], ...updatedData };
+      this.saveClients(clients);
+    }
+  }
+
+  static deleteClient(id) {
+    const clients = this.getClients().filter(c => c.id !== id);
+    this.saveClients(clients);
+    // Also delete all results for this client
+    const results = this.getResults().filter(r => r.clientId !== id);
+    this.saveResults(results);
+  }
+
   static getResults() {
     return Storage.get('results', []);
   }
@@ -663,10 +680,15 @@ class Router {
         break;
       case 'clients':
         app.innerHTML = ClientsScreen();
+        setTimeout(() => this.attachClientListeners(), 0);
         break;
       case 'addClient':
         app.innerHTML = AddClientScreen();
         setTimeout(() => this.attachAddClientListeners(), 0);
+        break;
+      case 'editClient':
+        app.innerHTML = EditClientScreen();
+        setTimeout(() => this.attachEditClientListeners(), 0);
         break;
       case 'selectClient':
         app.innerHTML = SelectClientScreen();
@@ -713,6 +735,30 @@ class Router {
     });
   }
 
+  static attachClientListeners() {
+    // Edit buttons
+    document.querySelectorAll('[data-edit-client]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const clientId = btn.dataset.editClient;
+        Router.navigate('editClient', { clientId });
+      });
+    });
+
+    // Delete buttons
+    document.querySelectorAll('[data-delete-client]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const clientId = btn.dataset.deleteClient;
+        const client = DB.getClient(clientId);
+        if (confirm(`Удалить клиента "${client.name}"?\n\nВнимание: Будут удалены все результаты тестов этого клиента!`)) {
+          DB.deleteClient(clientId);
+          Router.render();
+        }
+      });
+    });
+  }
+
   static attachAddClientListeners() {
     const form = document.getElementById('addClientForm');
     if (form) {
@@ -728,6 +774,20 @@ class Router {
           addedDate: new Date().toISOString()
         });
         
+        Router.navigate('clients');
+      });
+    }
+  }
+
+  static attachEditClientListeners() {
+    const form = document.getElementById('editClientForm');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('clientName').value;
+        const birthDate = document.getElementById('clientBirthDate').value;
+        
+        DB.updateClient(this.params.clientId, { name, birthDate });
         Router.navigate('clients');
       });
     }
@@ -915,11 +975,15 @@ function ClientsScreen() {
         </div>
       ` : clients.map(client => `
         <div class="list-item">
-          <div>
+          <div class="list-item-content">
             <strong>${client.name}</strong>
             <div class="list-item-info">
               ДР: ${new Date(client.birthDate).toLocaleDateString('ru-RU')}
             </div>
+          </div>
+          <div class="list-item-actions">
+            <button class="icon-btn" data-edit-client="${client.id}" title="Редактировать">✏️</button>
+            <button class="icon-btn" data-delete-client="${client.id}" title="Удалить">🗑️</button>
           </div>
         </div>
       `).join('')}
@@ -940,6 +1004,28 @@ function AddClientScreen() {
         
         <label>Дата рождения</label>
         <input type="date" id="clientBirthDate" required>
+        
+        <button type="submit" class="btn-primary">Сохранить</button>
+        <button type="button" class="btn-outline" onclick="Router.navigate('clients')">
+          Отмена
+        </button>
+      </form>
+    </div>
+  `;
+}
+
+function EditClientScreen() {
+  const client = DB.getClient(Router.params.clientId);
+  
+  return `
+    <div class="card">
+      <h2>Редактировать клиента</h2>
+      <form id="editClientForm">
+        <label>ФИО</label>
+        <input type="text" id="clientName" value="${client.name}" required>
+        
+        <label>Дата рождения</label>
+        <input type="date" id="clientBirthDate" value="${client.birthDate}" required>
         
         <button type="submit" class="btn-primary">Сохранить</button>
         <button type="button" class="btn-outline" onclick="Router.navigate('clients')">
