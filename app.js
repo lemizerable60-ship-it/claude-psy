@@ -471,6 +471,17 @@ class Router {
     report += '============================================================\n\n';
     results.forEach(result => {
       const test = TESTS[result.testId];
+      
+      // Автопересчёт для старых HADS
+      if (result.testId === 'hads' && !result.scores && result.answers) {
+        const scores = test.calculateScores(result.answers);
+        result.scores = scores;
+        result.interpretation = {
+          anxiety: 'Тревога: ' + test.interpretScale(scores.anxiety),
+          depression: 'Депрессия: ' + test.interpretScale(scores.depression)
+        };
+      }
+      
       report += 'МЕТОДИКА: ' + test.name + '\n';
       report += test.description + '\n';
       report += 'Дата проведения: ' + new Date(result.date).toLocaleString('ru-RU') + '\n\n';
@@ -504,9 +515,19 @@ class Router {
   }
 
   static downloadDetailedProtocol(resultId) {
-    const result = DB.getResult(resultId);
+    let result = DB.getResult(resultId);
     const client = DB.getClient(result.clientId);
     const test = TESTS[result.testId];
+    
+    // Автопересчёт для старых HADS
+    if (result.testId === 'hads' && !result.scores && result.answers) {
+      const scores = test.calculateScores(result.answers);
+      result.scores = scores;
+      result.interpretation = {
+        anxiety: 'Тревога: ' + test.interpretScale(scores.anxiety),
+        depression: 'Депрессия: ' + test.interpretScale(scores.depression)
+      };
+    }
     
     let report = 'ДЕТАЛЬНЫЙ ПРОТОКОЛ ТЕСТИРОВАНИЯ\n';
     report += '============================================================\n\n';
@@ -522,7 +543,11 @@ class Router {
       report += (index + 1) + '. ' + q.question + '\n';
       const answerScore = result.answers[index];
       const selectedOption = q.options.find(opt => opt.score === answerScore);
-      report += 'Ответ: ' + (selectedOption ? selectedOption.text : 'Нет ответа') + ' (' + answerScore + ' балл' + (answerScore === 1 ? '' : (answerScore > 1 && answerScore < 5 ? 'а' : 'ов')) + ')\n\n';
+      report += 'Ответ: ' + (selectedOption ? selectedOption.text : 'Нет ответа') + ' (' + answerScore + ' балл' + (answerScore === 1 ? '' : (answerScore > 1 && answerScore < 5 ? 'а' : 'ов')) + ')';
+      if (result.testId === 'hads' && q.scale) {
+        report += ' [Шкала: ' + (q.scale === 'anxiety' ? 'Тревога' : 'Депрессия') + ']';
+      }
+      report += '\n\n';
     });
     
     report += '============================================================\n\n';
@@ -576,6 +601,17 @@ class Router {
       } else {
         clientResults.forEach(result => {
           const test = TESTS[result.testId];
+          
+          // Автопересчёт для старых HADS
+          if (result.testId === 'hads' && !result.scores && result.answers) {
+            const scores = test.calculateScores(result.answers);
+            result.scores = scores;
+            result.interpretation = {
+              anxiety: 'Тревога: ' + test.interpretScale(scores.anxiety),
+              depression: 'Депрессия: ' + test.interpretScale(scores.depression)
+            };
+          }
+          
           const rec = this.getRecommendations(result.testId, result.score);
           let interpretationText = '';
           if (typeof result.interpretation === 'object') {
@@ -844,149 +880,4 @@ class Router {
     const test = TESTS[this.params.testId];
     const q = this.testState.currentQuestion;
     const question = test.questions[q];
-    const progress = ((q + 1) / test.questions.length) * 100;
-    let html = '<div class="card"><div class="question-screen"><div>' +
-      '<div class="progress-bar"><div class="progress-fill" style="width: ' + progress + '%"></div></div>' +
-      '<div class="question-number">Вопрос ' + (q + 1) + ' из ' + test.questions.length + '</div></div>' +
-      '<div><div class="question-text">' + question.question + '</div><div>';
-    question.options.forEach(opt => {
-      html += '<div class="answer-option" data-score="' + opt.score + '">' + opt.text + '</div>';
-    });
-    html += '</div></div><div><button class="btn-outline" id="testBackBtn">← ' + (q > 0 ? 'Предыдущий вопрос' : 'Отменить тест') + '</button></div></div></div>';
-    return html;
-  }
-
-  static ResultsScreen() {
-    const client = DB.getClient(this.params.clientId);
-    const results = DB.getClientResults(this.params.clientId);
-    const aiAnalyses = AI.getAnalyses(this.params.clientId);
-    const hasKey = Settings.getAIKey() !== '';
-    
-    let html = '<div class="card"><h2>Результаты: ' + client.name + '</h2>';
-    
-    if (results.length > 0) {
-      html += '<button class="btn-success" onclick="Router.navigate(\'createReport\', {clientId:\'' + client.id + '\'})">📄 Создать сводный протокол</button>';
-      html += '<button class="btn-primary" onclick="Router.navigate(\'aiAnalysis\', {clientId:\'' + client.id + '\'})" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🤖 Получить AI-заключение' + (hasKey ? '' : ' (требуется настройка)') + '</button>';
-    }
-    
-    // Результаты тестов
-    if (results.length === 0) {
-      html += '<div class="empty-state">Нет результатов тестирования</div>';
-    } else {
-      html += '<h3 style="font-size: var(--fs-xl); margin: 2rem 0 1rem 0; color: var(--text-primary);">📊 Результаты тестов</h3>';
-      results.forEach(result => {
-        const test = TESTS[result.testId];
-        html += '<div class="result-card" onclick="Router.navigate(\'viewResult\', {resultId:\'' + result.id + '\'})">' +
-          '<h3 style="font-size: var(--fs-xl); margin-bottom: 0.5rem">' + test.name + '</h3>' +
-          '<p style="opacity: 0.9">' + new Date(result.date).toLocaleString('ru-RU') + '</p>';
-        
-        if (result.testId === 'hads' && result.scores) {
-          html += '<div class="result-score">Тревога: ' + result.scores.anxiety + ' | Депрессия: ' + result.scores.depression + '</div>' +
-            '<div class="result-interpretation">' + result.interpretation.anxiety + '<br>' + result.interpretation.depression + '</div>';
-        } else {
-          html += '<div class="result-score">Балл: ' + result.score + '</div>' +
-            '<div class="result-interpretation">' + result.interpretation + '</div>';
-        }
-        
-        html += '</div>';
-      });
-    }
-    
-    // AI-заключения
-    if (aiAnalyses.length > 0) {
-      html += '<h3 style="font-size: var(--fs-xl); margin: 2rem 0 1rem 0; color: var(--text-primary);">🤖 AI-заключения</h3>';
-      aiAnalyses.forEach(analysis => {
-        html += '<div class="result-card" onclick="Router.navigate(\'aiResult\', {analysisId:\'' + analysis.id + '\'})" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">' +
-          '<h3 style="font-size: var(--fs-xl); margin-bottom: 0.5rem">AI-анализ от ' + new Date(analysis.date).toLocaleDateString('ru-RU') + '</h3>' +
-          '<p style="opacity: 0.9">' + new Date(analysis.date).toLocaleTimeString('ru-RU') + '</p>' +
-          '<div style="margin-top: 1rem; opacity: 0.9; font-size: var(--fs-base);">Нажмите для просмотра полного заключения</div></div>';
-      });
-    }
-    
-    html += '<button class="btn-outline" onclick="Router.navigate(\'selectClient\', {action:\'results\'})">← Назад</button></div>';
-    return html;
-  }
-
-  static ViewResultScreen() {
-    const result = DB.getResult(this.params.resultId);
-    const client = DB.getClient(result.clientId);
-    const test = TESTS[result.testId];
-    
-    let html = '<div class="card"><h2>Результат теста</h2>' +
-      '<div style="margin-bottom: 2rem">' +
-      '<p style="margin-bottom: 0.5rem"><strong>Клиент:</strong> ' + client.name + '</p>' +
-      '<p style="margin-bottom: 0.5rem"><strong>Тест:</strong> ' + test.name + '</p>' +
-      '<p style="margin-bottom: 0.5rem"><strong>Дата:</strong> ' + new Date(result.date).toLocaleString('ru-RU') + '</p></div>' +
-      '<div class="result-card">';
-    
-    if (result.testId === 'hads' && result.scores) {
-      html += '<div class="result-score">Тревога: ' + result.scores.anxiety + ' баллов (' + test.interpretScale(result.scores.anxiety) + ')</div>' +
-        '<div class="result-score">Депрессия: ' + result.scores.depression + ' баллов (' + test.interpretScale(result.scores.depression) + ')</div>' +
-        '<div class="result-score">Общий балл: ' + (result.scores.anxiety + result.scores.depression) + '</div>' +
-        '<div class="result-interpretation" style="margin-top: 1rem;">' + result.interpretation.anxiety + '<br>' + result.interpretation.depression + '</div>';
-    } else {
-      html += '<div class="result-score">Итоговый балл: ' + result.score + '</div>' +
-        '<div class="result-interpretation">' + result.interpretation + '</div>';
-    }
-    
-    html += '</div>' +
-      '<button class="btn-success" onclick="Router.downloadDetailedProtocol(\'' + result.id + '\')">📄 Скачать детальный протокол с ответами</button>' +
-      '<button class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + client.id + '\'})">← Назад</button></div>';
-    return html;
-  }
-
-  static CreateReportScreen() {
-    const client = DB.getClient(this.params.clientId);
-    const results = DB.getClientResults(this.params.clientId);
-    let html = '<div class="card"><h2>Создать протокол</h2>' +
-      '<p style="margin-bottom: 1.5rem; color: var(--text-light)">Выберите результаты для включения в протокол</p>' +
-      '<form id="reportForm">';
-    results.forEach(result => {
-      const test = TESTS[result.testId];
-      html += '<div class="checkbox-item">' +
-        '<input type="checkbox" name="resultIds" value="' + result.id + '" id="res_' + result.id + '">' +
-        '<label for="res_' + result.id + '"><strong>' + test.name + '</strong>' +
-        '<div class="list-item-info">' + new Date(result.date).toLocaleDateString('ru-RU') + ' • Балл: ' + result.score + '</div></label></div>';
-    });
-    html += '<button type="submit" class="btn-success" style="margin-top: 1rem">📥 Скачать протокол (TXT)</button>' +
-      '<button type="button" class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + client.id + '\'})">Отмена</button></form></div>';
-    return html;
-  }
-
-  static AIAnalysisScreen() {
-    const client = DB.getClient(this.params.clientId);
-    const results = DB.getClientResults(this.params.clientId);
-    const hasKey = Settings.getAIKey() !== '';
-    if (!hasKey) {
-      return '<div class="card"><h2>🤖 AI-ассистент</h2>' +
-        '<p style="color: var(--danger); margin-bottom: 2rem;">⚠️ API ключ не настроен!</p>' +
-        '<p style="margin-bottom: 2rem;">Для использования AI-ассистента нужен бесплатный API ключ от Google Gemini.</p>' +
-        '<button class="btn-primary" onclick="Router.navigate(\'settings\')">⚙️ Перейти в настройки</button>' +
-        '<button class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + this.params.clientId + '\'})">← Назад</button></div>';
-    }
-    return '<div class="card"><h2>🤖 AI-анализ результатов</h2>' +
-      '<p style="margin-bottom: 1rem;"><strong>Клиент:</strong> ' + client.name + '</p>' +
-      '<p style="margin-bottom: 2rem;"><strong>Тестов:</strong> ' + results.length + '</p>' +
-      '<p style="margin-bottom: 2rem; color: var(--text-light);">AI-психолог проанализирует все результаты и составит детальное заключение с рекомендациями, прогнозом и планом наблюдения.</p>' +
-      '<div id="aiStatus"></div>' +
-      '<button id="generateAIBtn" class="btn-primary">🚀 Сгенерировать заключение</button>' +
-      '<button class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + this.params.clientId + '\'})">← Назад</button></div>';
-  }
-
-  static AIResultScreen() {
-    const analysis = AI.getAnalysis(this.params.analysisId);
-    const client = DB.getClient(analysis.clientId);
-    return '<div class="card"><h2>🤖 AI-заключение</h2>' +
-      '<p style="margin-bottom: 1rem;"><strong>Клиент:</strong> ' + client.name + '</p>' +
-      '<p style="margin-bottom: 2rem;"><strong>Дата:</strong> ' + new Date(analysis.date).toLocaleString('ru-RU') + '</p>' +
-      '<div style="background: var(--bg); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; line-height: 1.8;">' +
-      this.formatMarkdown(analysis.text) + '</div>' +
-      '<button class="btn-success" onclick="Router.downloadAIReport(\'' + analysis.id + '\')">📥 Скачать заключение (TXT)</button>' +
-      '<button class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + client.id + '\'})">← Назад к результатам</button></div>';
-  }
-}
-
-// ============ INIT APP ============
-
-Settings.init();
-Router.navigate('home');
+    const progress = 
