@@ -31,6 +31,14 @@ class Settings {
   static setAIKey(key) {
     localStorage.setItem('ai-api-key', key);
   }
+
+  static getThemeColor() {
+    return localStorage.getItem('themeColor') || '#3b82f6';
+  }
+
+  static setThemeColor(color) {
+    localStorage.setItem('themeColor', color);
+  }
 }
 
 // ============ DATA LAYER ============
@@ -770,12 +778,88 @@ class Router {
     alert('✅ Бэкап успешно скачан!\n\nФайл: psycho_backup_' + new Date().toISOString().slice(0,10) + '.json');
   }
 
+  static restoreData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const backup = JSON.parse(e.target.result);
+        
+        // Проверяем что это наш бэкап
+        if (!backup.clients && !backup.results) {
+          alert('❌ Неверный формат файла!\n\nЭто не файл бэкапа PsychoSuite.');
+          return;
+        }
+        
+        // Подсчитываем данные
+        const currentClients = DB.getClients().length;
+        const currentResults = DB.getResults().length;
+        const newClients = backup.clients ? JSON.parse(backup.clients).length : 0;
+        const newResults = backup.results ? JSON.parse(backup.results).length : 0;
+        const backupDate = backup.timestamp ? new Date(backup.timestamp).toLocaleString('ru-RU') : 'неизвестно';
+        
+        // Спрашиваем подтверждение
+        let confirmMessage = '⚠️ ВНИМАНИЕ! ВОССТАНОВЛЕНИЕ ДАННЫХ\n\n';
+        confirmMessage += '📅 Дата бэкапа: ' + backupDate + '\n\n';
+        confirmMessage += '📊 ТЕКУЩИЕ ДАННЫЕ:\n';
+        confirmMessage += '   Клиентов: ' + currentClients + '\n';
+        confirmMessage += '   Результатов тестов: ' + currentResults + '\n\n';
+        confirmMessage += '📥 ИЗ БЭКАПА:\n';
+        confirmMessage += '   Клиентов: ' + newClients + '\n';
+        confirmMessage += '   Результатов тестов: ' + newResults + '\n\n';
+        
+        if (currentClients > 0 || currentResults > 0) {
+          confirmMessage += '🔴 ТЕКУЩИЕ ДАННЫЕ БУДУТ ЗАМЕНЕНЫ!\n\n';
+        }
+        
+        confirmMessage += 'Продолжить восстановление?';
+        
+        if (!confirm(confirmMessage)) {
+          // Очищаем input для возможности повторной загрузки
+          event.target.value = '';
+          return;
+        }
+        
+        // Восстанавливаем данные
+        if (backup.clients) localStorage.setItem('clients', backup.clients);
+        if (backup.results) localStorage.setItem('results', backup.results);
+        if (backup.testResults) localStorage.setItem('testResults', backup.testResults);
+        if (backup.reports) localStorage.setItem('reports', backup.reports);
+        if (backup['ai-analyses']) localStorage.setItem('ai-analyses', backup['ai-analyses']);
+        if (backup.theme) localStorage.setItem('theme', backup.theme);
+        if (backup.fontSize) localStorage.setItem('fontSize', backup.fontSize);
+        
+        alert('✅ ДАННЫЕ УСПЕШНО ВОССТАНОВЛЕНЫ!\n\n' +
+              'Клиентов: ' + newClients + '\n' +
+              'Результатов: ' + newResults + '\n\n' +
+              'Страница будет перезагружена.');
+        
+        location.reload();
+        
+      } catch (err) {
+        alert('❌ Ошибка при чтении файла!\n\n' + err.message + '\n\nУбедитесь что файл не поврежден.');
+        event.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  }
+
   static HomeScreen() {
     const hasData = DB.getClients().length > 0;
     const hasAI = Storage.get('ai-analyses', []).length > 0;
+    const clientsCount = DB.getClients().length;
+    const resultsCount = DB.getResults().length;
     
     return '<div class="card"><h2>Главное меню</h2>' +
-      '<button class="btn-danger" onclick="Router.backupData()" style="background: #e74c3c; margin-bottom: 1rem;">💾 СКАЧАТЬ БЭКАП ДАННЫХ</button>' +
+      (hasData ? '<div style="background: var(--bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: var(--fs-base);">' +
+        '📊 <strong>Данных в приложении:</strong><br>' +
+        'Клиентов: ' + clientsCount + ' | Результатов тестов: ' + resultsCount +
+        '</div>' : '') +
+      '<button class="btn-danger" onclick="Router.backupData()" style="background: #e74c3c; margin-bottom: 0.5rem;">💾 СКАЧАТЬ БЭКАП</button>' +
+      '<button class="btn-success" onclick="document.getElementById(\'restoreInput\').click()" style="background: #27ae60; margin-bottom: 1.5rem;">📥 ВОССТАНОВИТЬ ИЗ БЭКАПА</button>' +
+      '<input type="file" id="restoreInput" accept=".json" style="display:none;" onchange="Router.restoreData(event)">' +
       '<button class="btn-primary" onclick="Router.navigate(\'selectClient\', {action:\'test\'})">Провести тестирование</button>' +
       '<button class="btn-success" onclick="Router.navigate(\'clients\')">Управление клиентами</button>' +
       '<button class="btn-outline" onclick="Router.navigate(\'selectClient\', {action:\'results\'})">Просмотр результатов</button>' +
@@ -913,7 +997,7 @@ class Router {
       results.forEach(result => {
         const test = TESTS[result.testId];
         
-        // АВТОПЕРЕСЧЁТ для старых HADS (только для отображения, не сохраняем в БД здесь)
+        // АВТОПЕРЕСЧЁТ для старых HADS (только для отображения)
         if (result.testId === 'hads' && !result.scores && result.answers) {
           const scores = test.calculateScores(result.answers);
           result.scores = scores;
