@@ -161,25 +161,42 @@ const TESTS = {
     name: 'HADS',
     description: 'Госпитальная шкала тревоги и депрессии',
     questions: [
-      { question: '1. Я испытываю напряжение, мне не по себе', options: [{ text: 'Все время', score: 3 }, { text: 'Часто', score: 2 }, { text: 'Иногда', score: 1 }, { text: 'Совсем не испытываю', score: 0 }] },
-      { question: '2. То, что приносило мне удовольствие, и сейчас вызывает то же чувство', options: [{ text: 'Определенно это так', score: 0 }, { text: 'Наверное, это так', score: 1 }, { text: 'Лишь в очень малой степени', score: 2 }, { text: 'Это совсем не так', score: 3 }] },
-      { question: '3. Я испытываю страх, кажется, будто что-то ужасное может вот-вот случиться', options: [{ text: 'Определенно это так, и страх очень сильный', score: 3 }, { text: 'Да, это так, но страх не очень сильный', score: 2 }, { text: 'Иногда, но это меня не беспокоит', score: 1 }, { text: 'Совсем не испытываю', score: 0 }] },
-      { question: '4. Я способен рассмеяться и увидеть в том или ином событии смешное', options: [{ text: 'Определенно это так', score: 0 }, { text: 'Наверное, это так', score: 1 }, { text: 'Лишь в очень малой степени', score: 2 }, { text: 'Совсем не способен', score: 3 }] },
-      { question: '5. Беспокойные мысли крутятся у меня в голове', options: [{ text: 'Постоянно', score: 3 }, { text: 'Большую часть времени', score: 2 }, { text: 'Время от времени', score: 1 }, { text: 'Только иногда', score: 0 }] },
-      { question: '6. Я испытываю бодрость', options: [{ text: 'Совсем не испытываю', score: 3 }, { text: 'Очень редко', score: 2 }, { text: 'Иногда', score: 1 }, { text: 'Практически все время', score: 0 }] },
-      { question: '7. Я легко могу сесть и расслабиться', options: [{ text: 'Определенно это так', score: 0 }, { text: 'Наверное, это так', score: 1 }, { text: 'Лишь изредка это так', score: 2 }, { text: 'Совсем не могу', score: 3 }] },
-      { question: '8. Мне кажется, что я стал все делать очень медленно', options: [{ text: 'Практически все время', score: 3 }, { text: 'Часто', score: 2 }, { text: 'Иногда', score: 1 }, { text: 'Совсем нет', score: 0 }] },
-      { question: '9. Я испытываю внутреннее напряжение или дрожь', options: [{ text: 'Совсем не испытываю', score: 0 }, { text: 'Иногда', score: 1 }, { text: 'Часто', score: 2 }, { text: 'Очень часто', score: 3 }] },
-      { question: '10. Я не слежу за своей внешностью', options: [{ text: 'Определенно это так', score: 3 }, { text: 'Я не уделяю этому столько времени, сколько нужно', score: 2 }, { text: 'Может быть, я стал меньше уделять этому внимания', score: 1 }, { text: 'Я слежу за собой так же, как и раньше', score: 0 }] },
-      { question: '11. Я испытываю неусидчивость, словно мне постоянно нужно двигаться', options: [{ text: 'Определенно это так', score: 3 }, { text: 'Наверное, это так', score: 2 }, { text: 'Лишь в некоторой степени', score: 1 }, { text: 'Совсем не испытываю', score: 0 }] },
-      { question: '12. Я считаю, что мои дела могут принести мне чувство удовлетворения', options: [{ text: 'Точно так же, как и обычно', score: 0 }, { text: 'Да, но не в той степени, как раньше', score: 1 }, { text: 'Значительно меньше, чем обычно', score: 2 }, { text: 'Совсем не считаю', score: 3 }] },
-      { question: '13. У меня бывает внезапное чувство паники', options: [{ text: 'Очень часто', score: 3 }, { text: 'Довольно часто', score: 2 }, { text: 'Не так уж часто', score: 1 }, { text: 'Совсем не бывает', score: 0 }] },
-      { question: '14. Я могу получить удовольствие от хорошей книги', options: [{ text: 'Часто', score: 0 }, { text: 'Иногда', score: 1 }, { text: 'Редко', score: 2 }, { text: 'Очень редко', score: 3 }] }
+      { question: '1. Я испытываю напряжение, мне не по себе', options: [{ text: 'Все время', score: 3 }, { text: 'Часто', score: 2 }, { text: 'Иногда', score: 1 }, { text: 'Совсем не испытываю', score: 0 }], scale: 'anxiety' },
+      { question: '2. То, что приносило мне удовольствие, и сейчас вызывает то же чувство', options: [{ text: 'Определенно это так', score: 0 }, { text: 'Наверное, это так', score: 1 }, { text: 'Лишь в очень малой степени', score: 2 }, { text: 'Это совсем не так', score: 3 }], scale: 'depression' },
+      { question: '3. Я испытываю страх, кажется, будто что-то ужасное может вот-вот случиться', options: [{ text: 'Определенно это так, и страх очень сильный', score: 3 }, { text: 'Да, это так, но страх не очень сильный', score: 2 }, { text: 'Иногда, но это меня не беспокоит', score: 1 }, { text: 'Совсем не испытываю', score: 0 }], scale: 'anxiety' },
+      { question: '4. Я способен рассмеяться и увидеть в том или ином событии смешное', options: [{ text: 'Определенно это так', score: 0 }, { text: 'Наверное, это так', score: 1 }, { text: 'Лишь в очень малой степени', score: 2 }, { text: 'Совсем не способен', score: 3 }], scale: 'depression' },
+      { question: '5. Беспокойные мысли крутятся у меня в голове', options: [{ text: 'Постоянно', score: 3 }, { text: 'Большую часть времени', score: 2 }, { text: 'Время от времени', score: 1 }, { text: 'Только иногда', score: 0 }], scale: 'anxiety' },
+      { question: '6. Я испытываю бодрость', options: [{ text: 'Совсем не испытываю', score: 3 }, { text: 'Очень редко', score: 2 }, { text: 'Иногда', score: 1 }, { text: 'Практически все время', score: 0 }], scale: 'depression' },
+      { question: '7. Я легко могу сесть и расслабиться', options: [{ text: 'Определенно это так', score: 0 }, { text: 'Наверное, это так', score: 1 }, { text: 'Лишь изредка это так', score: 2 }, { text: 'Совсем не могу', score: 3 }], scale: 'anxiety' },
+      { question: '8. Мне кажется, что я стал все делать очень медленно', options: [{ text: 'Практически все время', score: 3 }, { text: 'Часто', score: 2 }, { text: 'Иногда', score: 1 }, { text: 'Совсем нет', score: 0 }], scale: 'depression' },
+      { question: '9. Я испытываю внутреннее напряжение или дрожь', options: [{ text: 'Совсем не испытываю', score: 0 }, { text: 'Иногда', score: 1 }, { text: 'Часто', score: 2 }, { text: 'Очень часто', score: 3 }], scale: 'anxiety' },
+      { question: '10. Я не слежу за своей внешностью', options: [{ text: 'Определенно это так', score: 3 }, { text: 'Я не уделяю этому столько времени, сколько нужно', score: 2 }, { text: 'Может быть, я стал меньше уделять этому внимания', score: 1 }, { text: 'Я слежу за собой так же, как и раньше', score: 0 }], scale: 'depression' },
+      { question: '11. Я испытываю неусидчивость, словно мне постоянно нужно двигаться', options: [{ text: 'Определенно это так', score: 3 }, { text: 'Наверное, это так', score: 2 }, { text: 'Лишь в некоторой степени', score: 1 }, { text: 'Совсем не испытываю', score: 0 }], scale: 'anxiety' },
+      { question: '12. Я считаю, что мои дела могут принести мне чувство удовлетворения', options: [{ text: 'Точно так же, как и обычно', score: 0 }, { text: 'Да, но не в той степени, как раньше', score: 1 }, { text: 'Значительно меньше, чем обычно', score: 2 }, { text: 'Совсем не считаю', score: 3 }], scale: 'depression' },
+      { question: '13. У меня бывает внезапное чувство паники', options: [{ text: 'Очень часто', score: 3 }, { text: 'Довольно часто', score: 2 }, { text: 'Не так уж часто', score: 1 }, { text: 'Совсем не бывает', score: 0 }], scale: 'anxiety' },
+      { question: '14. Я могу получить удовольствие от хорошей книги', options: [{ text: 'Часто', score: 0 }, { text: 'Иногда', score: 1 }, { text: 'Редко', score: 2 }, { text: 'Очень редко', score: 3 }], scale: 'depression' }
     ],
     interpret: (score) => {
       if (score <= 7) return 'Норма (0-7 баллов): Отсутствие достоверно выраженных симптомов тревоги и депрессии';
       if (score <= 10) return 'Субклинически выраженная тревога/депрессия (8-10 баллов)';
       return 'Клинически выраженная тревога/депрессия (11+ баллов)';
+    },
+    interpretScale: (score) => {
+      if (score <= 7) return 'Норма';
+      if (score <= 10) return 'Субклинически выраженная';
+      return 'Клинически выраженная';
+    },
+    calculateScores: (answers) => {
+      let anxiety = 0;
+      let depression = 0;
+      answers.forEach((answer, index) => {
+        if (TESTS.hads.questions[index].scale === 'anxiety') {
+          anxiety += answer;
+        } else {
+          depression += answer;
+        }
+      });
+      return { anxiety, depression };
     }
   },
 
@@ -363,7 +380,9 @@ class Router {
           setTimeout(() => this.render(), 300);
         } else {
           const totalScore = this.testState.answers.reduce((a, b) => a + b, 0);
-          DB.addResult({
+          
+          // Специальная обработка для HADS
+          let resultData = {
             id: Date.now().toString(),
             clientId: this.params.clientId,
             testId: this.params.testId,
@@ -371,7 +390,18 @@ class Router {
             score: totalScore,
             answers: [...this.testState.answers],
             interpretation: test.interpret(totalScore)
-          });
+          };
+          
+          if (this.params.testId === 'hads') {
+            const scores = test.calculateScores(this.testState.answers);
+            resultData.scores = scores;
+            resultData.interpretation = {
+              anxiety: 'Тревога: ' + test.interpretScale(scores.anxiety),
+              depression: 'Депрессия: ' + test.interpretScale(scores.depression)
+            };
+          }
+          
+          DB.addResult(resultData);
           this.testState = { currentQuestion: 0, answers: [] };
           Router.navigate('results', { clientId: this.params.clientId });
         }
@@ -444,9 +474,24 @@ class Router {
       report += 'МЕТОДИКА: ' + test.name + '\n';
       report += test.description + '\n';
       report += 'Дата проведения: ' + new Date(result.date).toLocaleString('ru-RU') + '\n\n';
-      report += 'Итоговый балл: ' + result.score + '\n\n';
-      report += 'ИНТЕРПРЕТАЦИЯ:\n' + result.interpretation + '\n\n';
-      report += '============================================================\n\n';
+      
+      if (result.testId === 'hads' && result.scores) {
+        report += 'РЕЗУЛЬТАТЫ:\n';
+        report += 'Тревога: ' + result.scores.anxiety + ' баллов (' + test.interpretScale(result.scores.anxiety) + ')\n';
+        report += 'Депрессия: ' + result.scores.depression + ' баллов (' + test.interpretScale(result.scores.depression) + ')\n';
+        report += 'Общий балл: ' + (result.scores.anxiety + result.scores.depression) + '\n\n';
+      } else {
+        report += 'Итоговый балл: ' + result.score + '\n\n';
+      }
+      
+      report += 'ИНТЕРПРЕТАЦИЯ:\n';
+      if (typeof result.interpretation === 'object') {
+        report += result.interpretation.anxiety + '\n';
+        report += result.interpretation.depression + '\n';
+      } else {
+        report += result.interpretation + '\n';
+      }
+      report += '\n============================================================\n\n';
     });
     const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -456,6 +501,57 @@ class Router {
     a.click();
     URL.revokeObjectURL(url);
     Router.navigate('results', { clientId: this.params.clientId });
+  }
+
+  static downloadDetailedProtocol(resultId) {
+    const result = DB.getResult(resultId);
+    const client = DB.getClient(result.clientId);
+    const test = TESTS[result.testId];
+    
+    let report = 'ДЕТАЛЬНЫЙ ПРОТОКОЛ ТЕСТИРОВАНИЯ\n';
+    report += '============================================================\n\n';
+    report += 'Клиент: ' + client.name + '\n';
+    report += 'Дата рождения: ' + new Date(client.birthDate).toLocaleDateString('ru-RU') + '\n';
+    report += 'Методика: ' + test.name + '\n';
+    report += 'Описание: ' + test.description + '\n';
+    report += 'Дата проведения: ' + new Date(result.date).toLocaleString('ru-RU') + '\n\n';
+    report += '============================================================\n\n';
+    report += 'ОТВЕТЫ КЛИЕНТА:\n\n';
+    
+    test.questions.forEach((q, index) => {
+      report += (index + 1) + '. ' + q.question + '\n';
+      const answerScore = result.answers[index];
+      const selectedOption = q.options.find(opt => opt.score === answerScore);
+      report += 'Ответ: ' + (selectedOption ? selectedOption.text : 'Нет ответа') + ' (' + answerScore + ' балл' + (answerScore === 1 ? '' : (answerScore > 1 && answerScore < 5 ? 'а' : 'ов')) + ')\n\n';
+    });
+    
+    report += '============================================================\n\n';
+    report += 'РЕЗУЛЬТАТЫ:\n\n';
+    
+    if (result.testId === 'hads' && result.scores) {
+      report += 'Тревога: ' + result.scores.anxiety + ' баллов (' + test.interpretScale(result.scores.anxiety) + ')\n';
+      report += 'Депрессия: ' + result.scores.depression + ' баллов (' + test.interpretScale(result.scores.depression) + ')\n';
+      report += 'Общий балл: ' + (result.scores.anxiety + result.scores.depression) + '\n\n';
+      report += 'ИНТЕРПРЕТАЦИЯ:\n';
+      report += result.interpretation.anxiety + '\n';
+      report += result.interpretation.depression + '\n';
+    } else {
+      report += 'Итоговый балл: ' + result.score + '\n\n';
+      report += 'ИНТЕРПРЕТАЦИЯ:\n' + result.interpretation + '\n';
+    }
+    
+    report += '\n============================================================\n';
+    report += 'РЕКОМЕНДАЦИИ:\n\n';
+    report += this.getRecommendations(result.testId, result.score) + '\n';
+    report += '\n============================================================\n';
+    
+    const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'detailed_' + test.id + '_' + client.name + '_' + Date.now() + '.txt';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   static exportToExcel() {
@@ -481,13 +577,19 @@ class Router {
         clientResults.forEach(result => {
           const test = TESTS[result.testId];
           const rec = this.getRecommendations(result.testId, result.score);
+          let interpretationText = '';
+          if (typeof result.interpretation === 'object') {
+            interpretationText = result.interpretation.anxiety + '; ' + result.interpretation.depression;
+          } else {
+            interpretationText = result.interpretation;
+          }
           csv += '"' + client.name + '";';
           csv += '"' + new Date(client.birthDate).toLocaleDateString('ru-RU') + '";';
           csv += '"' + age + '";';
           csv += '"' + test.name + '";';
           csv += '"' + new Date(result.date).toLocaleDateString('ru-RU') + ' ' + new Date(result.date).toLocaleTimeString('ru-RU') + '";';
           csv += '"' + result.score + '";';
-          csv += '"' + result.interpretation.replace(/"/g, '""') + '";';
+          csv += '"' + interpretationText.replace(/"/g, '""') + '";';
           csv += '"' + rec.replace(/"/g, '""') + '";';
           csv += '"' + aiInfo + '"\n';
         });
@@ -611,11 +713,33 @@ class Router {
       .replace(/\n\n/g, '<br><br>');
   }
 
+  static backupData() {
+    const backup = {
+      clients: localStorage.getItem('clients'),
+      results: localStorage.getItem('results'),
+      testResults: localStorage.getItem('testResults'),
+      reports: localStorage.getItem('reports'),
+      'ai-analyses': localStorage.getItem('ai-analyses'),
+      theme: localStorage.getItem('theme'),
+      fontSize: localStorage.getItem('fontSize'),
+      timestamp: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'psycho_backup_' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    alert('✅ Бэкап успешно скачан!\n\nФайл: psycho_backup_' + new Date().toISOString().slice(0,10) + '.json');
+  }
+
   static HomeScreen() {
     const hasData = DB.getClients().length > 0;
     const hasAI = Storage.get('ai-analyses', []).length > 0;
     
     return '<div class="card"><h2>Главное меню</h2>' +
+      '<button class="btn-danger" onclick="Router.backupData()" style="background: #e74c3c; margin-bottom: 1rem;">💾 СКАЧАТЬ БЭКАП ДАННЫХ</button>' +
       '<button class="btn-primary" onclick="Router.navigate(\'selectClient\', {action:\'test\'})">Провести тестирование</button>' +
       '<button class="btn-success" onclick="Router.navigate(\'clients\')">Управление клиентами</button>' +
       '<button class="btn-outline" onclick="Router.navigate(\'selectClient\', {action:\'results\'})">Просмотр результатов</button>' +
@@ -754,9 +878,17 @@ class Router {
         const test = TESTS[result.testId];
         html += '<div class="result-card" onclick="Router.navigate(\'viewResult\', {resultId:\'' + result.id + '\'})">' +
           '<h3 style="font-size: var(--fs-xl); margin-bottom: 0.5rem">' + test.name + '</h3>' +
-          '<p style="opacity: 0.9">' + new Date(result.date).toLocaleString('ru-RU') + '</p>' +
-          '<div class="result-score">Балл: ' + result.score + '</div>' +
-          '<div class="result-interpretation">' + result.interpretation + '</div></div>';
+          '<p style="opacity: 0.9">' + new Date(result.date).toLocaleString('ru-RU') + '</p>';
+        
+        if (result.testId === 'hads' && result.scores) {
+          html += '<div class="result-score">Тревога: ' + result.scores.anxiety + ' | Депрессия: ' + result.scores.depression + '</div>' +
+            '<div class="result-interpretation">' + result.interpretation.anxiety + '<br>' + result.interpretation.depression + '</div>';
+        } else {
+          html += '<div class="result-score">Балл: ' + result.score + '</div>' +
+            '<div class="result-interpretation">' + result.interpretation + '</div>';
+        }
+        
+        html += '</div>';
       });
     }
     
@@ -779,14 +911,28 @@ class Router {
     const result = DB.getResult(this.params.resultId);
     const client = DB.getClient(result.clientId);
     const test = TESTS[result.testId];
-    return '<div class="card"><h2>Результат теста</h2>' +
+    
+    let html = '<div class="card"><h2>Результат теста</h2>' +
       '<div style="margin-bottom: 2rem">' +
       '<p style="margin-bottom: 0.5rem"><strong>Клиент:</strong> ' + client.name + '</p>' +
       '<p style="margin-bottom: 0.5rem"><strong>Тест:</strong> ' + test.name + '</p>' +
       '<p style="margin-bottom: 0.5rem"><strong>Дата:</strong> ' + new Date(result.date).toLocaleString('ru-RU') + '</p></div>' +
-      '<div class="result-card"><div class="result-score">Итоговый балл: ' + result.score + '</div>' +
-      '<div class="result-interpretation">' + result.interpretation + '</div></div>' +
+      '<div class="result-card">';
+    
+    if (result.testId === 'hads' && result.scores) {
+      html += '<div class="result-score">Тревога: ' + result.scores.anxiety + ' баллов (' + test.interpretScale(result.scores.anxiety) + ')</div>' +
+        '<div class="result-score">Депрессия: ' + result.scores.depression + ' баллов (' + test.interpretScale(result.scores.depression) + ')</div>' +
+        '<div class="result-score">Общий балл: ' + (result.scores.anxiety + result.scores.depression) + '</div>' +
+        '<div class="result-interpretation" style="margin-top: 1rem;">' + result.interpretation.anxiety + '<br>' + result.interpretation.depression + '</div>';
+    } else {
+      html += '<div class="result-score">Итоговый балл: ' + result.score + '</div>' +
+        '<div class="result-interpretation">' + result.interpretation + '</div>';
+    }
+    
+    html += '</div>' +
+      '<button class="btn-success" onclick="Router.downloadDetailedProtocol(\'' + result.id + '\')">📄 Скачать детальный протокол с ответами</button>' +
       '<button class="btn-outline" onclick="Router.navigate(\'results\', {clientId:\'' + client.id + '\'})">← Назад</button></div>';
+    return html;
   }
 
   static CreateReportScreen() {
