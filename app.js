@@ -857,27 +857,4 @@ class Router {
     } else {
       clients.forEach(client => {
         const nav = action === 'test' ? 'selectTest' : 'results';
-        html += '<div class="list-item" onclick="Router.navigate(\'' + nav + '\', {clientId:\'' + client.id + '\'})">' +
-          '<div><strong>' + client.name + '</strong>' +
-          '<div class="list-item-info">ДР: ' + new Date(client.birthDate).toLocaleDateString('ru-RU') + '</div></div></div>';
-      });
-    }
-    html += '<button class="btn-outline" onclick="Router.navigate(\'home\')">← Назад</button></div>';
-    return html;
-  }
-
-  static SelectTestScreen() {
-    let html = '<div class="card"><h2>Выберите методику</h2>';
-    Object.values(TESTS).forEach(test => {
-      html += '<div class="list-item" onclick="Router.navigate(\'runTest\', {clientId:\'' + this.params.clientId + '\', testId:\'' + test.id + '\'})">' +
-        '<div><strong>' + test.name + '</strong><div class="list-item-info">' + test.description + '</div></div></div>';
-    });
-    html += '<button class="btn-outline" onclick="Router.navigate(\'selectClient\', {action:\'test\'})">← Назад</button></div>';
-    return html;
-  }
-
-  static RunTestScreen() {
-    const test = TESTS[this.params.testId];
-    const q = this.testState.currentQuestion;
-    const question = test.questions[q];
-    const progress = 
+        html += '<div class="list-item" 
